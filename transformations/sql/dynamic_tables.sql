@@ -159,12 +159,12 @@ SELECT
     SNOWFLAKE.CORTEX.COMPLETE(
         'mistral-large',
         'Write a tennis match summary (one paragraph maximum) using only the data provided. ' ||
-        'focus on top match qualities (e.g. young vs old players, #1 vs #2 , etc. ' ||
-        'capture the mood of the match (comeback, battle, domination, tight sets, swings, etc.' || CHR(10) ||
-        ' dont exagurate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
+        'Focus on outstanding match qualities (e.g. young vs old players, #1 vs #2 , long matches, etc.) ' ||
+        'capture the mood of the match (comeback, battle, domination, tight sets, swings, etc.)' || CHR(10) ||
+        ' dont exaggerate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
         ' 6-3 is not tight. 7-6 is tight. ' ||   CHR(10) ||
         ' 5 sets match is a battle (in 5 set format). 3 set match is a battle in 3 set format only when tight.' ||   CHR(10) ||
-        'try to explain why certain things happened using the statistics, instead of just stating the statistics (aces, first serve percentage, etc.).' ||   CHR(10) ||
+        'try to explain why certain things happened using the statistics, but dont mentio the statistics ("the winner was stronger under the pressure, instead of 'the winner had high break point saves percentage").' ||   CHR(10) ||
 
         'Match data:' || CHR(10) ||
         'Tournament: ' || tournament_name || ' (' || tournament_level || ')' || CHR(10) ||
