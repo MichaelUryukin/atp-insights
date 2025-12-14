@@ -1,9 +1,6 @@
 name: atp_tennis_insights
 description: |
   Semantic model for ATP tennis match data, including match statistics, player information, and tournament details. Enables natural language queries about tennis matches, player performance, and tournament analytics.
-
-custom_instructions: "when asked about percentages - format result with %"
-
 tables:
   - name: matches
     description: |
@@ -17,7 +14,7 @@ tables:
         synonyms:
           - loser entry type
         description: |
-          Full name of the loser's entry: WC = Wild Card, Q = Qualifier, LL = Lucky Loser, PR = Protected Rating
+          Full name of the loser's entry
         expr: matches.loser_entry
         data_type: TEXT
         unique: false
@@ -57,7 +54,7 @@ tables:
           - tour level
           - tournament level
         description: |
-          Level of the tournament. Codes: G = Grand Slam, M = Masters, A = ATP 250/500/1000, F = Futures.
+          Level of the tournament
         expr: matches.tournament_level
         data_type: TEXT
         unique: false
@@ -670,3 +667,17 @@ relationships:
         right_column: PLAYER_ID
     join_type: left_outer
     relationship_type: many_to_one
+verified_queries:
+  - name: what is the average breakpoint conversion in hard courts?
+    question: what is the average breakpoint conversion in hard courts?
+    sql: |-
+      SELECT
+        AVG(m.winner_break_point_conversion_rate) AS average_breakpoint_conversion
+      FROM
+        matches AS m
+      WHERE
+        m.tournament_surface = 'Hard'
+    use_as_onboarding_question: false
+    verified_by: Michael Uryukin
+    verified_at: 1765710920
+custom_instructions: when asked about percentages - format result with %
