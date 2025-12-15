@@ -164,7 +164,7 @@ SELECT
         ' dont exaggerate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
         ' 6-3 is not tight. 7-6 is tight. ' ||   CHR(10) ||
         ' 5 sets match is a battle (in 5 set format). 3 set match is a battle in 3 set format only when tight.' ||   CHR(10) ||
-        'try to explain why certain things happened using the statistics, but dont mentio the statistics ("the winner was stronger under the pressure, instead of 'the winner had high break point saves percentage").' ||   CHR(10) ||
+        'try to explain why certain things happened using the statistics, but dont mention the statistics ("the winner was stronger under the pressure, instead of 'the winner had high break point saves percentage").' ||   CHR(10) ||
 
         'Match data:' || CHR(10) ||
         'Tournament: ' || tournament_name || ' (' || tournament_level || ')' || CHR(10) ||
