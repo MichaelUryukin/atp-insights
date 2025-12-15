@@ -6,3 +6,4 @@ infra/terraform.tfstate.*
 infra/terraform.tfstate.backup
 infra/*.tfvars
 infra/registry.terraform.io/
+*.DS_Store
