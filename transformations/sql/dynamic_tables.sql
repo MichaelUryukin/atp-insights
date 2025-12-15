@@ -2,6 +2,7 @@
 CREATE OR REPLACE DYNAMIC TABLE PC_DATAIKU_DB.PUBLIC.MATCHES_SAMPLE_100_CLEAN
 TARGET_LAG =  'DOWNSTREAM'
 WAREHOUSE = COMPUTE_WH
+REFRESH_MODE = INCREMENTAL
 AS
 SELECT
     -- Tournament identifiers
@@ -78,9 +79,6 @@ SELECT
     CAST("l_bpSaved" AS INTEGER) AS loser_break_points_saved,
     CAST("l_bpFaced" AS INTEGER) AS loser_break_points_faced,
 
-    -- Timestamps
-    CURRENT_TIMESTAMP() AS created_at,
-    CURRENT_TIMESTAMP() AS updated_at
 FROM
     PC_DATAIKU_DB.PUBLIC."node_7aea55bb_ATP_MATCHES_100_SNOWFLAKE";
 
@@ -107,8 +105,6 @@ SELECT
     CAST("gender" AS VARCHAR) AS gender,
     TO_DATE("birthdate", 'YYYYMMDD') AS birthdate,
 
-    CURRENT_TIMESTAMP() AS created_at,
-    CURRENT_TIMESTAMP() AS updated_at
 FROM
     PC_DATAIKU_DB.PUBLIC."node_7aea55bb_ATP_PLAYERS_SNOWFLAKE";
 
@@ -120,6 +116,7 @@ ALTER DYNAMIC TABLE PC_DATAIKU_DB.PUBLIC.PLAYERS_CLEAN SET DATA_METRIC_SCHEDULE 
 CREATE OR REPLACE DYNAMIC TABLE PC_DATAIKU_DB.PUBLIC.MATCHES_SAMPLE_100_ENRICHED
 TARGET_LAG = '1 day'
 WAREHOUSE = COMPUTE_WH
+REFRESH_MODE = INCREMENTAL
 AS
 SELECT
     -- All columns from MATCHES_SAMPLE_100_CLEAN
@@ -162,12 +159,12 @@ SELECT
     SNOWFLAKE.CORTEX.COMPLETE(
         'mistral-large',
         'Write a tennis match summary (one paragraph maximum) using only the data provided. ' ||
-        'focus on top match qualities (e.g. young vs old players, #1 vs #2 , etc. ' ||
-        'capture the mood of the match (comeback, battle, domination, tight sets, swings, etc.' || CHR(10) ||
-        ' dont exagurate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
+        'Focus on outstanding match qualities (e.g. young vs old players, #1 vs #2 , long matches, etc.) ' ||
+        'capture the mood of the match (comeback, battle, domination, tight sets, swings, etc.)' || CHR(10) ||
+        ' dont exaggerate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
         ' 6-3 is not tight. 7-6 is tight. ' ||   CHR(10) ||
         ' 5 sets match is a battle (in 5 set format). 3 set match is a battle in 3 set format only when tight.' ||   CHR(10) ||
-        'try to explain why certain things happened using the statistics, instead of just stating the statistics (aces, first serve percentage, etc.).' ||   CHR(10) ||
+        'try to explain why certain things happened using the statistics, but dont mention the statistics ("the winner was stronger under the pressure, instead of 'the winner had high break point saves percentage").' ||   CHR(10) ||
 
         'Match data:' || CHR(10) ||
         'Tournament: ' || tournament_name || ' (' || tournament_level || ')' || CHR(10) ||
