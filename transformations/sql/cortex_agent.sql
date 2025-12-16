@@ -1,5 +1,5 @@
 -- Create Cortex Agent with SQL tools and semantic model
-CREATE OR REPLACE AGENT PC_DATAIKU_DB.PUBLIC.ATP_CORTEX_AGENT
+CREATE OR REPLACE AGENT ATP_INSIGHTS.DEFAULT.ATP_CORTEX_AGENT
   COMMENT = 'ATP Insights Agent with Cortex Search and Analyst tools'
   FROM SPECIFICATION
   $$
@@ -26,15 +26,15 @@ tools:
 
 tool_resources:
   Analyst:
-    semantic_model_file: "@PC_DATAIKU_DB.PUBLIC.SEMANTIC_MODELS/semantic_model.yaml"
+    semantic_model_file: "@ATP_INSIGHTS.DEFAULT.SEMANTIC_MODELS/semantic_model.yaml"
     execution_environment:
       type: "warehouse"
       warehouse: "COMPUTE_WH"
       query_timeout: 60
   Search:
-    name: "PC_DATAIKU_DB.PUBLIC.ATP_CORTEX_SEARCH"
+    name: "ATP_INSIGHTS.DEFAULT.ATP_CORTEX_SEARCH"
     max_results: 1
 $$;
 
 -- Grant USAGE on the agent
-GRANT USAGE ON AGENT PC_DATAIKU_DB.PUBLIC.ATP_CORTEX_AGENT TO ROLE PC_DATAIKU_ROLE;
+GRANT USAGE ON AGENT ATP_INSIGHTS.DEFAULT.ATP_CORTEX_AGENT TO ROLE PC_DATAIKU_ROLE;

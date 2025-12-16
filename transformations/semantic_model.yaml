@@ -6,8 +6,8 @@ tables:
     description: |
       The matches table contains detailed information about each tennis match, including tournament details, match results, and player statistics for both winner and loser.
     base_table:
-      database: PC_DATAIKU_DB
-      schema: PUBLIC
+      database: ATP_INSIGHTS
+      schema: DEFAULT
       table: MATCHES_SAMPLE_100_ENRICHED
     dimensions:
       - name: loser_entry
@@ -558,8 +558,8 @@ tables:
     description: |
       The players table contains information about tennis players, including personal details, playing hand, country, and birthdate.
     base_table:
-      database: PC_DATAIKU_DB
-      schema: PUBLIC
+      database: ATP_INSIGHTS
+      schema: DEFAULT
       table: PLAYERS_CLEAN
     dimensions:
       - name: country
