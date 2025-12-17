@@ -35,3 +35,13 @@ resource "snowflake_grant_account_role" "dataiku_service_role" {
   role_name = snowflake_account_role.dataiku_role.name
   user_name = snowflake_service_user.dataiku_service.name
 }
+
+# OAuth Security Integration for Dataiku
+resource "snowflake_oauth_integration_for_custom_clients" "dataiku_oauth" {
+  name                         = "DATAIKU_OAUTH"
+  oauth_client_type            = "CONFIDENTIAL"
+  oauth_redirect_uri           = var.dataiku_oauth_redirect_uri
+  enabled                      = true
+  oauth_issue_refresh_tokens   = true
+  comment                      = "OAuth security integration for Dataiku connection"
+}

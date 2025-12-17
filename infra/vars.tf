@@ -22,3 +22,9 @@ variable "snowflake_warehouse" {
   default     = "COMPUTE_WH"
 }
 
+variable "dataiku_oauth_redirect_uri" {
+  description = "OAuth redirect URI for Dataiku integration"
+  type        = string
+  default     = "https://dss-7aea55bb-7e5a0c43-dku.eu-west-2.app.dataiku.io/dip/api/oauth2-callback"
+}
+

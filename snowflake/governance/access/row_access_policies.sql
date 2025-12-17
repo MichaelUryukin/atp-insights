@@ -1,3 +1,8 @@
+-- ============================================================================
+-- Row Access Policies
+-- Example: USA Players Viewers Role
+-- ============================================================================
+
 -- Create the role
 CREATE ROLE IF NOT EXISTS USA_PLAYERS_VIEWERS
   COMMENT = 'Role for users who can only view players from USA';
@@ -23,6 +28,4 @@ AS (country VARCHAR) RETURNS BOOLEAN ->
 -- Apply the row access policy to the PLAYERS_CLEAN table
 ALTER TABLE ATP_INSIGHTS.DEFAULT.PLAYERS_CLEAN
 ADD ROW ACCESS POLICY ATP_INSIGHTS.DEFAULT.usa_players_policy ON (country);
-
-
 
