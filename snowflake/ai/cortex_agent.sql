@@ -1,4 +1,7 @@
--- Create Cortex Agent with SQL tools and semantic model
+-- ============================================================================
+-- Cortex Agent with SQL tools and semantic model
+-- ============================================================================
+
 CREATE OR REPLACE AGENT ATP_INSIGHTS.DEFAULT.ATP_CORTEX_AGENT
   COMMENT = 'ATP Insights Agent with Cortex Search and Analyst tools'
   FROM SPECIFICATION
@@ -36,5 +39,3 @@ tool_resources:
     max_results: 1
 $$;
 
--- Grant USAGE on the agent
-GRANT USAGE ON AGENT ATP_INSIGHTS.DEFAULT.ATP_CORTEX_AGENT TO ROLE PC_DATAIKU_ROLE;

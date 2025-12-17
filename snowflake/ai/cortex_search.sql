@@ -1,3 +1,6 @@
+-- ============================================================================
+-- Cortex Search Service for Match Summaries
+-- ============================================================================
 
 CREATE OR REPLACE CORTEX SEARCH SERVICE ATP_INSIGHTS.DEFAULT.ATP_CORTEX_SEARCH
 ON MATCH_SUMMARY
@@ -16,5 +19,3 @@ AS (
 	FROM ATP_INSIGHTS.DEFAULT.MATCHES_ENRICHED
 );
 
--- Grant USAGE on the Cortex Search Service
-GRANT USAGE ON CORTEX SEARCH SERVICE ATP_INSIGHTS.DEFAULT.ATP_CORTEX_SEARCH TO ROLE DATAIKU_ROLE;

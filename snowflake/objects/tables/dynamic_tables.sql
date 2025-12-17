@@ -1,3 +1,7 @@
+-- ============================================================================
+-- Dynamic Tables for ATP Insights
+-- ============================================================================
+
 -- Dynamic table for ATP match insights with meaningful column names
 CREATE OR REPLACE DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 TARGET_LAG =  'DOWNSTREAM'
@@ -77,14 +81,10 @@ SELECT
     CAST("l_2ndWon" AS INTEGER) AS loser_second_serve_points_won,
     CAST("l_SvGms" AS INTEGER) AS loser_service_games,
     CAST("l_bpSaved" AS INTEGER) AS loser_break_points_saved,
-    CAST("l_bpFaced" AS INTEGER) AS loser_break_points_faced,
+    CAST("l_bpFaced" AS INTEGER) AS loser_break_points_faced
 
 FROM
     ATP_INSIGHTS.DEFAULT."node_7aea55bb_ATP_MATCHES_RAW";
-
-
--- Create daily schedule for data metrics
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN SET DATA_METRIC_SCHEDULE = '1440 MINUTES';
 
 
 -- Dynamic table for ATP players
@@ -103,13 +103,10 @@ SELECT
     END AS hand,
     CAST("country" AS VARCHAR) AS country,
     CAST("gender" AS VARCHAR) AS gender,
-    TO_DATE("birthdate", 'YYYYMMDD') AS birthdate,
+    TO_DATE("birthdate", 'YYYYMMDD') AS birthdate
 
 FROM
     ATP_INSIGHTS.DEFAULT."node_7aea55bb_ATP_PLAYERS_RAW";
-
--- Create daily schedule for data metrics
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.PLAYERS_CLEAN SET DATA_METRIC_SCHEDULE = '1440 MINUTES';
 
 
 -- Enriched dynamic table with per-row calculations
@@ -156,60 +153,55 @@ SELECT
     END AS loser_break_point_save_percentage,
 
     -- AI generated match summary
-    -- SNOWFLAKE.CORTEX.COMPLETE(
-    --     'mistral-large',
-    --     'Write a tennis match summary (one paragraph maximum) using only the data provided. ' ||
-    --     'Focus on outstanding match qualities (e.g. young vs old players, #1 vs #2 , long matches, etc.) ' ||
-    --     'capture the mood of the match (comeback, battle, domination, tight sets, swings, etc.)' || CHR(10) ||
-    --     ' dont exaggerate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
-    --     ' 6-3 is not tight. 7-6 is tight. ' ||   CHR(10) ||
-    --     ' 5 sets match is a battle (in 5 set format). 3 set match is a battle in 3 set format only when tight.' ||   CHR(10) ||
-    --     'try to explain why certain things happened using the statistics, but dont mention the statistics ("the winner was stronger under the pressure, instead of 'the winner had high break point saves percentage").' ||   CHR(10) ||
+    SNOWFLAKE.CORTEX.COMPLETE(
+        'mistral-large',
+        'Write a tennis match summary (one paragraph maximum) using only the data provided. ' ||
+        'Focus on outstanding match qualities (e.g. young vs old players, #1 vs #2 , long matches, etc.) ' ||
+        'capture the mood of the match (comeback, battle, domination, tight sets, swings, etc.)' || CHR(10) ||
+        ' dont exaggerate - if the match wasnt a big battle - say it. ' ||   CHR(10) ||
+        ' 6-3 is not tight. 7-6 is tight. ' ||   CHR(10) ||
+        ' 5 sets match is a battle (in 5 set format). 3 set match is a battle in 3 set format only when tight.' ||   CHR(10) ||
+        'try to explain why certain things happened using the statistics, but dont mention the statistics ("the winner was stronger under the pressure, instead of the winner had high break point saves percentage").' ||   CHR(10) ||
 
-    --     'Match data:' || CHR(10) ||
-    --     'Tournament: ' || tournament_name || ' (' || tournament_level || ')' || CHR(10) ||
-    --     'Surface: ' || tournament_surface || CHR(10) ||
-    --     'Round: ' || match_round || CHR(10) ||
-    --     'Duration: ' || match_duration_minutes || ' minutes' || CHR(10) ||
+        'Match data:' || CHR(10) ||
+        'Tournament: ' || tournament_name || ' (' || tournament_level || ')' || CHR(10) ||
+        'Surface: ' || tournament_surface || CHR(10) ||
+        'Round: ' || match_round || CHR(10) ||
+        'Duration: ' || match_duration_minutes || ' minutes' || CHR(10) ||
 
-    --     'Winner:' || CHR(10) ||
-    --     '- Rank: ' || winner_rank || CHR(10) ||
-    --     '- Aces: ' || winner_aces || CHR(10) ||
-    --     '- Age: ' || winner_age || CHR(10) ||
-    --     '- Double Faults: ' || winner_double_faults || CHR(10) ||
-    --     '- First Serves In: ' || winner_first_serves_in || CHR(10) ||
-    --     '- First Serve Points Won: ' || winner_first_serve_points_won || CHR(10) ||
-    --     '- Second Serve Points Won: ' || winner_second_serve_points_won || CHR(10) ||
-    --     '- Service Games: ' || winner_service_games || CHR(10) ||
-    --     '- Break Points Saved: ' || winner_break_points_saved || CHR(10) ||
-    --     '- First servce percentage: ' || winner_first_serve_percentage || CHR(10) ||
-    --     '- First serve win percentage: ' || winner_first_serve_win_percentage || CHR(10) ||
-    --     '- Break Points Conversion Rate: ' || COALESCE(winner_break_point_conversion_rate::VARCHAR, 'N/A') || CHR(10) ||
-    --     '- Break Points Save Percentage: ' || COALESCE(winner_break_point_save_percentage::VARCHAR, 'N/A') || CHR(10) ||
+        'Winner:' || CHR(10) ||
+        '- Rank: ' || winner_rank || CHR(10) ||
+        '- Aces: ' || winner_aces || CHR(10) ||
+        '- Age: ' || winner_age || CHR(10) ||
+        '- Double Faults: ' || winner_double_faults || CHR(10) ||
+        '- First Serves In: ' || winner_first_serves_in || CHR(10) ||
+        '- First Serve Points Won: ' || winner_first_serve_points_won || CHR(10) ||
+        '- Second Serve Points Won: ' || winner_second_serve_points_won || CHR(10) ||
+        '- Service Games: ' || winner_service_games || CHR(10) ||
+        '- Break Points Saved: ' || winner_break_points_saved || CHR(10) ||
+        '- First serve percentage: ' || winner_first_serve_percentage || CHR(10) ||
+        '- First serve win percentage: ' || winner_first_serve_win_percentage || CHR(10) ||
+        '- Break Points Conversion Rate: ' || COALESCE(winner_break_point_conversion_rate::VARCHAR, 'N/A') || CHR(10) ||
+        '- Break Points Save Percentage: ' || COALESCE(winner_break_point_save_percentage::VARCHAR, 'N/A') || CHR(10) ||
 
-    --     'Loser:' || CHR(10) ||
-    --     '- Player ID: ' || loser_id || CHR(10) ||
-    --     '- Rank: ' || loser_rank || CHR(10) ||
-    --     '- Age: ' || loser_age || CHR(10) ||
-    --     '- Aces: ' || loser_aces || CHR(10) ||
-    --     '- Double Faults: ' || loser_double_faults || CHR(10) ||
-    --     '- First Serves In: ' || loser_first_serves_in || CHR(10) ||
-    --     '- First Serve Points Won: ' || loser_first_serve_points_won || CHR(10) ||
-    --     '- Second Serve Points Won: ' || loser_second_serve_points_won || CHR(10) ||
-    --     '- Service Games: ' || loser_service_games || CHR(10) ||
-    --     '- Break Points Saved: ' || loser_break_points_saved || CHR(10) ||
-    --     '- Break Points Faced: ' || loser_break_points_faced || CHR(10) ||
-    --     '- First servce percentage: ' || loser_first_serve_percentage || CHR(10) ||
-    --     '- First serve win percentage: ' || loser_first_serve_win_percentage || CHR(10) ||
-    --     '- Break Points Conversion Rate: ' || COALESCE(loser_break_point_conversion_rate::VARCHAR, 'N/A') || CHR(10) ||
-    --     '- Break Points Save Percentage: ' || COALESCE(loser_break_point_save_percentage::VARCHAR, 'N/A') || CHR(10) ||
-    --     'Score: ' || match_score) AS match_summary
+        'Loser:' || CHR(10) ||
+        '- Player ID: ' || loser_id || CHR(10) ||
+        '- Rank: ' || loser_rank || CHR(10) ||
+        '- Age: ' || loser_age || CHR(10) ||
+        '- Aces: ' || loser_aces || CHR(10) ||
+        '- Double Faults: ' || loser_double_faults || CHR(10) ||
+        '- First Serves In: ' || loser_first_serves_in || CHR(10) ||
+        '- First Serve Points Won: ' || loser_first_serve_points_won || CHR(10) ||
+        '- Second Serve Points Won: ' || loser_second_serve_points_won || CHR(10) ||
+        '- Service Games: ' || loser_service_games || CHR(10) ||
+        '- Break Points Saved: ' || loser_break_points_saved || CHR(10) ||
+        '- Break Points Faced: ' || loser_break_points_faced || CHR(10) ||
+        '- First serve percentage: ' || loser_first_serve_percentage || CHR(10) ||
+        '- First serve win percentage: ' || loser_first_serve_win_percentage || CHR(10) ||
+        '- Break Points Conversion Rate: ' || COALESCE(loser_break_point_conversion_rate::VARCHAR, 'N/A') || CHR(10) ||
+        '- Break Points Save Percentage: ' || COALESCE(loser_break_point_save_percentage::VARCHAR, 'N/A') || CHR(10) ||
+        'Score: ' || match_score) AS match_summary
     
 FROM
     ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN;
-
--- Create daily schedule for data metrics
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_ENRICHED SET DATA_METRIC_SCHEDULE = '5 MINUTE';
-
-
 
