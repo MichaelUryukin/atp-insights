@@ -8,7 +8,7 @@ tables:
     base_table:
       database: ATP_INSIGHTS
       schema: DEFAULT
-      table: MATCHES_SAMPLE_100_ENRICHED
+      table: MATCHES_ENRICHED
     dimensions:
       - name: loser_entry
         synonyms:
