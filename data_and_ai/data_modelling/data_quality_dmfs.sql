@@ -12,24 +12,24 @@ grant create data metric function on schema ATP_INSIGHTS.DEFAULT to role ACCOUNT
 
 -- NULL_COUNT: All ID columns must have 0 NULLs
 -- Note: If DMF already exists, use MODIFY instead of ADD
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (tournament_id)
   EXPECTATION no_null_tournament_id (VALUE = 0);
 
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (match_id)
   EXPECTATION no_null_match_id (VALUE = 0);
 
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (winner_id)
   EXPECTATION no_null_winner_id (VALUE = 0);
 
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (loser_id)
   EXPECTATION no_null_loser_id (VALUE = 0);
 
 -- ACCEPTED_VALUES: Round validation - must be one of R16, R32, F, SF, QF
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ACCEPTED_VALUES ON (match_round, match_round -> match_round IN ('R16', 'R32', 'F', 'SF', 'QF'))
   EXPECTATION valid_round (VALUE = 0);
 
@@ -54,7 +54,7 @@ $$
 $$;
 
 -- 2. Alter the Dynamic Table with the corrected ON clause
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION ATP_INSIGHTS.DEFAULT.dmf_invalid_match_date
   -- CORRECT SYNTAX: List ONLY the single column required by the DMF's TABLE input.
   ON (match_date)
@@ -71,7 +71,7 @@ $$
        OR (arg_loser_first_serve_points_won > arg_loser_first_serves_in AND arg_loser_first_serves_in IS NOT NULL AND arg_loser_first_serve_points_won IS NOT NULL)
 $$;
 
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION ATP_INSIGHTS.DEFAULT.dmf_invalid_first_serve_won
   -- CORRECT SYNTAX: List the columns directly as the arguments for the DMF's TABLE input.
   ON (winner_first_serve_points_won, winner_first_serves_in, loser_first_serve_points_won, loser_first_serves_in)
@@ -88,7 +88,7 @@ $$
        OR (arg_loser_break_points_saved > arg_loser_break_points_faced AND arg_loser_break_points_faced IS NOT NULL AND arg_loser_break_points_saved IS NOT NULL)
 $$;
 
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_SAMPLE_100_CLEAN
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN
 ADD DATA METRIC FUNCTION ATP_INSIGHTS.DEFAULT.dmf_invalid_break_points
   -- CORRECT SYNTAX: List the columns directly.
   ON (winner_break_points_saved, winner_break_points_faced, loser_break_points_saved, loser_break_points_faced)
