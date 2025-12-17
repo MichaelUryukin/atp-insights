@@ -1,15 +1,12 @@
-from dash import Dash, dcc, html, dash_table, Input, Output, State, callback
+import traceback
+
+import dataiku
+from dash import Dash, dcc, html, Input, Output, State
 from dash.exceptions import PreventUpdate
-import logging
+from dataiku.llm.python import BaseLLM
+from langchain_core.messages import ToolMessage, SystemMessage
+from langchain_core.tools import tool
 
-logger = logging.getLogger(__name__)
-
-# Initialize Dash app (like the working example)
-
-
-# Set layout directly - simple and immediate (like the working example)
-# CRITICAL: This must be set at module level before any other code runs
-# Match the working example pattern exactly
 app.layout = html.Div([
     html.H1("🎾 ATP Insights Agent", style={"textAlign": "center", "marginBottom": "20px", "color": "#333"}),
     dcc.Store(id='messages', data=[]),
@@ -46,66 +43,102 @@ app.layout = html.Div([
     ], style={"padding": "20px"})
 ], style={"maxWidth": "1200px", "margin": "0 auto", "padding": "20px"})
 
-# ============================================================================
-# AGENT CODE - DEFINED AFTER APP AND LAYOUT ARE SET
-# ============================================================================
-
-# Import agent-related modules AFTER layout is set (to avoid blocking layout setup)
-from langchain_core.messages import ToolMessage, SystemMessage
-import dataiku
-from dataiku.llm.python import BaseLLM
-
-SNOWFLAKE_CORTEX_CONNECTION_NAME = "snowflake_cortex"
-
 # Initialize agent tools variables - will be set lazily when needed
 cortex_search_tool = None
 cortex_analyst_tool = None
 tools = []
 
-# Tool descriptions - defined here for use later
-search_description = """Use Cortex Search when asked about emotions, mood, flow of the match, or narrative descriptions of matches. 
-This tool searches through match summaries and descriptions to find relevant information about the emotional and narrative aspects of tennis matches.
-Use this for questions about match intensity, player emotions, match flow, dramatic moments, or storytelling aspects."""
 
-analyst_description = """Use Cortex Analyst when asked about statistical things, numbers, aggregations, or data analysis.
-This tool queries the semantic model to answer questions about match statistics, player performance metrics, tournament data, and analytical queries.
-Use this for questions about counts, averages, comparisons, rankings, or any numerical analysis."""
+def create_cortex_search_tool(tool_obj):
+    """
+    Create a LangChain tool wrapper for Cortex Search.
 
-def add_tool_to_list(tool_obj, tool_type="", description=""):
-    """Helper function to add a tool to the tools list."""
+    Args:
+        tool_obj: The Cortex Search tool object to wrap.
+
+    Returns:
+        A LangChain tool for searching match summaries.
+    """
+    @tool
+    def cortex_search(query: str) -> str:
+        """Use Cortex Search when asked about emotions, mood, flow of the match, or narrative descriptions of matches. This tool searches through match summaries and descriptions to find relevant information about the emotional and narrative aspects of tennis matches. Use this for questions about match intensity, player emotions, match flow, dramatic moments, or storytelling aspects."""
+        return tool_obj.run({"query": query})
+    return cortex_search
+
+
+def create_cortex_analyst_tool(tool_obj):
+    """
+    Create a LangChain tool wrapper for Cortex Analyst.
+
+    Args:
+        tool_obj: The Cortex Analyst tool object to wrap.
+
+    Returns:
+        A LangChain tool for querying statistical data.
+    """
+    @tool
+    def cortex_analyst(query: str) -> str:
+        """Use Cortex Analyst when asked about statistical things, numbers, aggregations, or data analysis. This tool queries the semantic model to answer questions about match statistics, player performance metrics, tournament data, and analytical queries. Use this for questions about counts, averages, comparisons, rankings, or any numerical analysis."""
+        return tool_obj.run({"query": query})
+    return cortex_analyst
+
+
+def create_generic_tool(tool_obj):
+    """
+    Create a generic LangChain tool wrapper.
+
+    Args:
+        tool_obj: The tool object to wrap.
+
+    Returns:
+        A LangChain tool for querying data.
+    """
+    @tool
+    def generic_tool(query: str) -> str:
+        """Tool for querying data."""
+        return tool_obj.run({"query": query})
+    return generic_tool
+
+
+def add_tool_to_list(tool_obj, tool_type=""):
+    """
+    Add a tool to the tools list.
+
+    Creates a LangChain tool wrapper with the appropriate docstring based on tool type.
+    Supports Cortex Search, Cortex Analyst, or generic tool wrappers.
+
+    Args:
+        tool_obj: The tool object to wrap.
+        tool_type: Type identifier ("Cortex Search" or "Cortex Analyst").
+    """
     if tool_obj:
         print(f"DEBUG: Adding {tool_type} tool to list...")
-        from langchain_core.tools import tool
-        
-        # Create tool with docstring - need to create unique function for each tool
         if tool_type == "Cortex Search":
-            @tool
-            def cortex_search_tool(query: str) -> str:
-                """Use Cortex Search when asked about emotions, mood, flow of the match, or narrative descriptions of matches. This tool searches through match summaries and descriptions to find relevant information about the emotional and narrative aspects of tennis matches. Use this for questions about match intensity, player emotions, match flow, dramatic moments, or storytelling aspects."""
-                return tool_obj.run({"query": query})
-            manual_tool = cortex_search_tool
+            manual_tool = create_cortex_search_tool(tool_obj)
         elif tool_type == "Cortex Analyst":
-            @tool
-            def cortex_analyst_tool(query: str) -> str:
-                """Use Cortex Analyst when asked about statistical things, numbers, aggregations, or data analysis. This tool queries the semantic model to answer questions about match statistics, player performance metrics, tournament data, and analytical queries. Use this for questions about counts, averages, comparisons, rankings, or any numerical analysis."""
-                return tool_obj.run({"query": query})
-            manual_tool = cortex_analyst_tool
+            manual_tool = create_cortex_analyst_tool(tool_obj)
         else:
-            @tool
-            def manual_tool_wrapper(query: str) -> str:
-                """Tool for querying data."""
-                return tool_obj.run({"query": query})
-            manual_tool = manual_tool_wrapper
-        
+            manual_tool = create_generic_tool(tool_obj)
+
         tools.append(manual_tool)
         print(f"DEBUG: Created manual tool wrapper for {tool_type}")
 
 
 class MyLLM(BaseLLM):
-    def __init__(self):
-        pass
+    """Custom LLM wrapper for Dataiku that integrates with Cortex tools."""
 
     def process(self, query, settings, trace):
+        """
+        Process a query using the LLM with tool support.
+        
+        Args:
+            query: Dictionary containing 'messages' list.
+            settings: LLM settings including model name.
+            trace: Trace object for observability spans.
+            
+        Returns:
+            Dictionary with 'text' key containing the response.
+        """
         print(f"DEBUG: Starting process() with settings: {settings}")
         print(f"DEBUG: Query messages: {len(query.get('messages', []))} messages")
         
@@ -247,69 +280,81 @@ In your responses:
                     print(f"DEBUG: Tool message added to conversation")
                     messages.append(ToolMessage(tool_call_id=tool_call["id"], content=str(tool_output)))
 
-# ============================================================================
-# AGENT INITIALIZATION - HAPPENS AFTER APP AND LAYOUT ARE SET
-# ============================================================================
+def find_tool(name: str, project, project_visual_tools):
+    """
+    Find and return a tool by name from project_visual_tools.
 
-# Initialize agent tools AFTER app and layout are set
+    Args:
+        name: The exact name of the tool to find.
+        project: The Dataiku project object.
+        project_visual_tools: List of available agent tools.
+
+    Returns:
+        The tool object if found, None otherwise.
+    """
+    print(f"DEBUG: Searching for tool with name: '{name}'")
+    for t in project_visual_tools:
+        if t["name"] == name:
+            print(f"DEBUG: Found tool '{name}' with id: '{t['id']}'")
+            tool_obj = project.get_agent_tool(t['id'])
+            print(f"DEBUG: Tool object type: {type(tool_obj)}")
+            return tool_obj
+    print(f"DEBUG: Tool '{name}' not found")
+    return None
+
+
 def initialize_agent_tools():
-    """Initialize agent tools - called after app is created."""
+    """
+    Initialize Cortex Search and Cortex Analyst tools.
+
+    Retrieves available agent tools from the Dataiku project and creates
+    LangChain tool wrappers for use with the LLM.
+    """
     global cortex_search_tool, cortex_analyst_tool, tools
-    
+
     try:
-        # Get the Cortex Search tool
         print("DEBUG: Getting project and listing agent tools...")
         project = dataiku.api_client().get_default_project()
         project_visual_tools = project.list_agent_tools()
         print(f"DEBUG: Found {len(project_visual_tools)} agent tools")
-        for tool in project_visual_tools:
-            print(f"DEBUG: Available tool - name: '{tool.get('name')}', id: '{tool.get('id')}'")
+        for t in project_visual_tools:
+            print(f"DEBUG: Available tool - name: '{t.get('name')}', id: '{t.get('id')}'")
 
-        def find_tool(name: str):
-            """Find a tool by name."""
-            print(f"DEBUG: Searching for tool with name: '{name}'")
-            for tool in project_visual_tools:
-                if tool["name"] == name:
-                    print(f"DEBUG: Found tool '{name}' with id: '{tool['id']}'")
-                    tool_obj = project.get_agent_tool(tool['id'])
-                    print(f"DEBUG: Tool object type: {type(tool_obj)}")
-                    return tool_obj
-            print(f"DEBUG: Tool '{name}' not found")
-            return None
-
-        # Get the Snowflake Cortex Search tool
         print("DEBUG: Looking for 'Snowflake Cortex Search' tool...")
-        cortex_search_tool = find_tool("Snowflake Cortex Search")
-        # Get the Snowflake Cortex Analyst tool
+        cortex_search_tool = find_tool("Snowflake Cortex Search", project, project_visual_tools)
         print("DEBUG: Looking for 'Snowflake Cortex Analyst' tool...")
-        cortex_analyst_tool = find_tool("Snowflake Cortex Analyst")
+        cortex_analyst_tool = find_tool("Snowflake Cortex Analyst", project, project_visual_tools)
         
         # Add tools to list
-        add_tool_to_list(cortex_search_tool, "Cortex Search", search_description)
-        add_tool_to_list(cortex_analyst_tool, "Cortex Analyst", analyst_description)
+        add_tool_to_list(cortex_search_tool, "Cortex Search")
+        add_tool_to_list(cortex_analyst_tool, "Cortex Analyst")
 
         print(f"DEBUG: Total tools available: {len(tools)}")
     except Exception as e:
         print(f"WARNING: Failed to initialize agent tools: {e}")
-        import traceback
         traceback.print_exc()
 
-# Initialize the LLM instance lazily - only when needed
 llm_instance = None
 
+
 def get_llm_instance():
-    """Lazy initialization of LLM instance."""
+    """
+    Get or create the singleton LLM instance.
+    
+    Lazily initializes the LLM and agent tools on first call.
+    
+    Returns:
+        MyLLM instance or None if initialization fails.
+    """
     global llm_instance
     if llm_instance is None:
         try:
             print("DEBUG: Initializing LLM instance...")
             llm_instance = MyLLM()
-            # Initialize tools after LLM is created
             initialize_agent_tools()
             print("DEBUG: LLM instance initialized successfully")
         except Exception as e:
             print(f"WARNING: Failed to initialize LLM instance: {e}")
-            import traceback
             traceback.print_exc()
             llm_instance = None
     return llm_instance
@@ -360,8 +405,9 @@ def get_answer(_, question, messages):
         }
         settings = {"model": "claude-3-5-sonnet"}
         
-        # Create a simple trace object
         class SimpleTrace:
+            """Simple trace object for observability."""
+            
             def __init__(self):
                 self.current_span = None
             
@@ -371,6 +417,8 @@ def get_answer(_, question, messages):
                 return span
         
         class SimpleSpan:
+            """Simple span object that acts as a context manager for tracing."""
+            
             def __init__(self, name):
                 self.name = name
                 self.attributes = {}
@@ -399,7 +447,6 @@ def get_answer(_, question, messages):
         return ["", answer_text, messages]
         
     except Exception as e:
-        import traceback
         error_details = traceback.format_exc()
         print(f"ERROR in get_answer: {error_details}")
         error_msg = f"Error: {str(e)}"
