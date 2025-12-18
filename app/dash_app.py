@@ -205,6 +205,7 @@ In your responses:
                                 tool_used = "Cortex Search"
                                 tool_output = cortex_search_tool.run(tool_args)
                                 print(f"DEBUG: Cortex Search tool output received, length: {len(str(tool_output))}")
+                                print(f"DEBUG: Cortex Analyst tool output : {str(tool_output)}")
                         
                         if tool_output is None and cortex_analyst_tool:
                             analyst_tool_name = cortex_analyst_tool.name if hasattr(cortex_analyst_tool, 'name') else None
@@ -213,6 +214,8 @@ In your responses:
                                 tool_used = "Cortex Analyst"
                                 tool_output = cortex_analyst_tool.run(tool_args)
                                 print(f"DEBUG: Cortex Analyst tool output received, length: {len(str(tool_output))}")
+                                print(f"DEBUG: Cortex Analyst tool output : {str(tool_output)}")
+                                
                         
                         # Add tool name to output so LLM knows which tool was used
                         if tool_used:
