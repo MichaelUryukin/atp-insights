@@ -61,6 +61,25 @@ atp-insights/
 
 > **Note:** Cortex AI features (Cortex Search, Cortex Agent, CORTEX.COMPLETE) are **not available** on trial/free tier accounts. The dynamic tables and data quality features work on all editions.
 
+## CI/CD
+
+This repository includes GitHub Actions workflows for automated Terraform operations:
+
+- **Terraform Plan** - Runs on pull requests, shows plan results as PR comments
+- **Terraform Apply** - Runs automatically on merge to `main` branch
+
+### Required GitHub Secrets
+
+Configure the following secrets in your GitHub repository settings:
+
+- `SNOWFLAKE_ORGANIZATION_NAME` - Snowflake organization name (e.g., "LVJDWFU")
+- `SNOWFLAKE_ACCOUNT_NAME` - Snowflake account locator (e.g., "UA41514")
+- `SNOWFLAKE_ROLE` - Role for Terraform operations (e.g., "ACCOUNTADMIN")
+- `SNOWFLAKE_WAREHOUSE` - Warehouse for DDL execution (e.g., "COMPUTE_WH")
+- `SNOWFLAKE_PRIVATE_KEY` - Private key for JWT authentication (contents of the `.p8` file)
+
+The workflows automatically trigger when changes are made to files in `atp-insights/infra/` or the workflow files themselves.
+
 ## Deployment
 
 ### Step 1: Infrastructure (Terraform)
