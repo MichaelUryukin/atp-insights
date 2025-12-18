@@ -14,15 +14,15 @@ A Snowflake-native analytics platform for ATP tennis match data, featuring AI-po
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         ATP_INSIGHTS Database                        │
-├─────────────────────────────────────────────────────────────────────┤
-│  Raw Tables (Dataiku)     →    Dynamic Tables    →    AI Services   │
-│  ├─ ATP_MATCHES_RAW            ├─ MATCHES_CLEAN       ├─ Cortex Search
-│  └─ ATP_PLAYERS_RAW            ├─ PLAYERS_CLEAN       └─ Cortex Agent
-│                                └─ MATCHES_ENRICHED                   │
-│                                     └─ AI summaries                  │
-└─────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                         ATP_INSIGHTS Database                          │
+├────────────────────────────────────────────────────────────────────────┤
+│  Raw Tables (Dataiku)     →    Dynamic Tables    →    AI Services      │
+│  ├─ ATP_MATCHES_RAW            ├─ MATCHES_CLEAN       ├─ Cortex Search |
+│  └─ ATP_PLAYERS_RAW            ├─ PLAYERS_CLEAN       └─ Cortex Agent  |
+│                                └─ MATCHES_ENRICHED                     │
+│                                     └─ AI summaries                    │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Repository Structure

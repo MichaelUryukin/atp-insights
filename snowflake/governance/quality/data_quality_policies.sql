@@ -4,9 +4,8 @@
 -- ============================================================================
 
 -- Set data metric schedules for dynamic tables
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN SET DATA_METRIC_SCHEDULE = '1440 MINUTES';
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.PLAYERS_CLEAN SET DATA_METRIC_SCHEDULE = '1440 MINUTES';
-ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_ENRICHED SET DATA_METRIC_SCHEDULE = '1440 MINUTES';
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.MATCHES_CLEAN SET DATA_METRIC_SCHEDULE = '30 MINUTES';
+ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.PLAYERS_CLEAN SET DATA_METRIC_SCHEDULE = '30 MINUTES';
 
 -- ============================================================================
 -- Built-in System DMFs with Expectations
@@ -36,7 +35,7 @@ ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ACCEPTED_VALUES ON (match_round, match_r
 
 -- ACCEPTED_VALUES: Hand validation - winner hand must be R or L
 ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.PLAYERS_CLEAN
-ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ACCEPTED_VALUES ON (hand, hand -> hand IN ('R', 'L') OR hand IS NULL)
+ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ACCEPTED_VALUES ON (hand, hand -> hand IN ('Right', 'Left', 'Unknown') OR hand IS NULL)
   EXPECTATION valid_winner_hand (VALUE = 0);
 
 -- ============================================================================
