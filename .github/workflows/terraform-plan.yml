@@ -1,10 +1,10 @@
 name: Terraform Plan
 
 on:
-  pull_request:
-    paths:
-      - 'atp-insights/infra/**'
-      - '.github/workflows/terraform-plan.yml'
+  pull_request
+    # paths:
+    #   - 'atp-insights/infra/**'
+    #   - '.github/workflows/terraform-plan.yml'
 
 jobs:
   terraform-plan:
