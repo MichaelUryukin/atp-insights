@@ -17,7 +17,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TERRAFORM_PRE_RUN: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.ssh/snowflake_tf_snow_key.p8
+        # Write private key preserving newlines (printf handles multi-line strings better than echo)
+        printf '%s' "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.ssh/snowflake_tf_snow_key.p8
         chmod 600 ~/.ssh/snowflake_tf_snow_key.p8
     
     steps:
@@ -40,9 +41,10 @@ jobs:
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.plan.outputs.plan_path != ''
         with:
           name: terraform-plan
           path: ${{ steps.plan.outputs.plan_path }}
           retention-days: 1
+          if-no-files-found: warn
 
