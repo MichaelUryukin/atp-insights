@@ -35,7 +35,7 @@ ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ACCEPTED_VALUES ON (match_round, match_r
 
 -- ACCEPTED_VALUES: Hand validation - winner hand must be R or L
 ALTER DYNAMIC TABLE ATP_INSIGHTS.DEFAULT.PLAYERS_CLEAN
-ADD DATA METRIC FUNCTION SNOWFLAKE.COREßß.ACCEPTED_VALUES ON (hand, hand -> hand IN ('Right', 'Left', 'Unknown') OR hand IS NULL)
+ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ACCEPTED_VALUES ON (hand, hand -> hand IN ('Right', 'Left', 'Unknown') OR hand IS NULL)
   EXPECTATION valid_winner_hand (VALUE = 0);
 
 -- ============================================================================
