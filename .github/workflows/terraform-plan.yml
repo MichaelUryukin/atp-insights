@@ -10,9 +10,15 @@ jobs:
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: infra
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TERRAFORM_PRE_RUN: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.ssh/snowflake_tf_snow_key.p8
+        chmod 600 ~/.ssh/snowflake_tf_snow_key.p8
     
     steps:
       - name: Checkout code
@@ -20,82 +26,23 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
-
-      - name: Terraform Init
-        env:
-          SNOWFLAKE_ORGANIZATION_NAME: ${{ secrets.SNOWFLAKE_ORGANIZATION_NAME }}
-          SNOWFLAKE_ACCOUNT_NAME: ${{ secrets.SNOWFLAKE_ACCOUNT_NAME }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.ssh/snowflake_tf_snow_key.p8
-          chmod 600 ~/.ssh/snowflake_tf_snow_key.p8
-          terraform init
-
       - name: Terraform Plan
         id: plan
-        env:
-          SNOWFLAKE_ORGANIZATION_NAME: ${{ secrets.SNOWFLAKE_ORGANIZATION_NAME }}
-          SNOWFLAKE_ACCOUNT_NAME: ${{ secrets.SNOWFLAKE_ACCOUNT_NAME }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-        run: |
-          terraform plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
-        continue-on-error: true
-
-      - name: Comment PR
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
+        uses: dflook/terraform-plan@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            const planPath = path.join('${{ github.workspace }}', 'infra', 'plan_output.txt');
-            
-            let planOutput = '';
-            try {
-              planOutput = fs.readFileSync(planPath, 'utf8');
-            } catch (error) {
-              planOutput = 'Error reading plan output: ' + error.message;
-            }
-            
-            const maxLength = 65536; // GitHub comment character limit
-            const output = planOutput.length > maxLength 
-              ? planOutput.substring(0, maxLength) + '\n\n... (truncated)'
-              : planOutput;
-            
-            const planStatus = '${{ steps.plan.outcome }}' === 'success' ? '✅' : '❌';
-            
-            const body = `## ${planStatus} Terraform Plan Results
-            
-            <details><summary>Show Plan</summary>
-            
-            \`\`\`
-            ${output}
-            \`\`\`
-            
-            </details>
-            
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });
+          path: infra
+          add_github_comment: true
+          variables: |
+            snowflake_organization_name = "${{ secrets.SNOWFLAKE_ORGANIZATION_NAME }}"
+            snowflake_account_name = "${{ secrets.SNOWFLAKE_ACCOUNT_NAME }}"
+            snowflake_role = "${{ secrets.SNOWFLAKE_ROLE }}"
+            snowflake_warehouse = "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: terraform-plan
-          path: infra/tfplan
+          path: ${{ steps.plan.outputs.plan_path }}
           retention-days: 1
 
